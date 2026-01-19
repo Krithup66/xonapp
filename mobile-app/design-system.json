@@ -1,0 +1,307 @@
+{
+  "version": "1.0.0",
+  "name": "Xon App Design System",
+  "description": "Design system สำหรับ Xon App - ใช้เพื่อให้การออกแบบสอดคล้องกันทั้งแอพ",
+  
+  "colors": {
+    "dark": {
+      "background": {
+        "primary": "#141414",
+        "secondary": "#000000",
+        "tertiary": "#2f2c2c",
+        "card": "#141414",
+        "overlay": "rgba(0,0,0,0.5)",
+        "backdrop": "rgba(0,0,0,0.7)"
+      },
+      "text": {
+        "primary": "#FFFFFF",
+        "secondary": "rgba(255,255,255,0.8)",
+        "tertiary": "rgba(255,255,255,0.6)",
+        "muted": "rgba(255,255,255,0.5)"
+      },
+      "accent": {
+        "primary": "#3ff9be",
+        "secondary": "#C4FF00",
+        "success": "#C4FF00",
+        "warning": "#FFB800",
+        "error": "#FF0505",
+        "info": "#007AFF"
+      },
+      "border": {
+        "default": "rgba(255,255,255,0.15)",
+        "light": "rgba(255,255,255,0.1)",
+        "divider": "rgba(255,255,255,0.05)"
+      },
+      "button": {
+        "primary": "#3ff9be",
+        "primaryText": "#000000",
+        "secondary": "#FFFFFF",
+        "secondaryText": "#000000"
+      },
+      "card": {
+        "background": "#141414",
+        "border": "rgba(255,255,255,0.15)",
+        "shadow": "rgba(0,0,0,0.4)"
+      }
+    },
+    "light": {
+      "background": {
+        "primary": "#F5F5F5",
+        "secondary": "#FFFFFF",
+        "tertiary": "#E0E0E0",
+        "card": "#FFFFFF",
+        "overlay": "rgba(0,0,0,0.3)",
+        "backdrop": "rgba(0,0,0,0.5)"
+      },
+      "text": {
+        "primary": "#000000",
+        "secondary": "rgba(0,0,0,0.8)",
+        "tertiary": "rgba(0,0,0,0.6)",
+        "muted": "rgba(0,0,0,0.5)"
+      },
+      "accent": {
+        "primary": "#007AFF",
+        "secondary": "#4CAF50",
+        "success": "#4CAF50",
+        "warning": "#FFC107",
+        "error": "#F44336",
+        "info": "#2196F3"
+      },
+      "border": {
+        "default": "rgba(0,0,0,0.1)",
+        "light": "rgba(0,0,0,0.05)",
+        "divider": "rgba(0,0,0,0.05)"
+      },
+      "button": {
+        "primary": "#007AFF",
+        "primaryText": "#FFFFFF",
+        "secondary": "#FFFFFF",
+        "secondaryText": "#000000"
+      },
+      "card": {
+        "background": "#FFFFFF",
+        "border": "rgba(0,0,0,0.1)",
+        "shadow": "rgba(0,0,0,0.1)"
+      }
+    }
+  },
+  
+  "typography": {
+    "fontFamily": {
+      "regular": "Prompt-Regular",
+      "medium": "Prompt-Medium",
+      "semiBold": "Prompt-SemiBold",
+      "bold": "Prompt-Bold"
+    },
+    "fontSize": {
+      "xs": 8,
+      "sm": 10,
+      "base": 12,
+      "md": 14,
+      "lg": 16,
+      "xl": 18,
+      "2xl": 20,
+      "3xl": 24,
+      "4xl": 28,
+      "5xl": 32
+    },
+    "lineHeight": {
+      "tight": 1.2,
+      "normal": 1.5,
+      "relaxed": 1.75
+    },
+    "fontWeight": {
+      "regular": "400",
+      "medium": "500",
+      "semiBold": "600",
+      "bold": "700"
+    },
+    "textStyles": {
+      "h1": {
+        "fontSize": 32,
+        "fontWeight": "bold",
+        "lineHeight": 1.2,
+        "fontFamily": "Prompt-Bold"
+      },
+      "h2": {
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "lineHeight": 1.3,
+        "fontFamily": "Prompt-Bold"
+      },
+      "h3": {
+        "fontSize": 20,
+        "fontWeight": "semiBold",
+        "lineHeight": 1.4,
+        "fontFamily": "Prompt-SemiBold"
+      },
+      "h4": {
+        "fontSize": 18,
+        "fontWeight": "semiBold",
+        "lineHeight": 1.4,
+        "fontFamily": "Prompt-SemiBold"
+      },
+      "body": {
+        "fontSize": 16,
+        "fontWeight": "regular",
+        "lineHeight": 1.5,
+        "fontFamily": "Prompt-Regular"
+      },
+      "bodySmall": {
+        "fontSize": 14,
+        "fontWeight": "regular",
+        "lineHeight": 1.5,
+        "fontFamily": "Prompt-Regular"
+      },
+      "caption": {
+        "fontSize": 12,
+        "fontWeight": "regular",
+        "lineHeight": 1.5,
+        "fontFamily": "Prompt-Regular"
+      },
+      "label": {
+        "fontSize": 14,
+        "fontWeight": "semiBold",
+        "lineHeight": 1.4,
+        "fontFamily": "Prompt-SemiBold"
+      },
+      "button": {
+        "fontSize": 14,
+        "fontWeight": "regular",
+        "lineHeight": 1.4,
+        "fontFamily": "Prompt-Regular"
+      }
+    }
+  },
+  
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 20,
+    "2xl": 24,
+    "3xl": 28,
+    "4xl": 32,
+    "5xl": 40,
+    "6xl": 48,
+    "7xl": 56
+  },
+  
+  "borderRadius": {
+    "none": 0,
+    "sm": 4,
+    "md": 8,
+    "lg": 10,
+    "xl": 12,
+    "2xl": 16,
+    "3xl": 20,
+    "full": 9999
+  },
+  
+  "shadows": {
+    "sm": {
+      "shadowColor": "#000000",
+      "shadowOffset": { "width": 0, "height": 1 },
+      "shadowOpacity": 0.1,
+      "shadowRadius": 2,
+      "elevation": 2
+    },
+    "md": {
+      "shadowColor": "#000000",
+      "shadowOffset": { "width": 0, "height": 2 },
+      "shadowOpacity": 0.15,
+      "shadowRadius": 4,
+      "elevation": 4
+    },
+    "lg": {
+      "shadowColor": "#000000",
+      "shadowOffset": { "width": 0, "height": 4 },
+      "shadowOpacity": 0.2,
+      "shadowRadius": 8,
+      "elevation": 8
+    },
+    "xl": {
+      "shadowColor": "#000000",
+      "shadowOffset": { "width": 0, "height": 8 },
+      "shadowOpacity": 0.25,
+      "shadowRadius": 16,
+      "elevation": 12
+    }
+  },
+  
+  "animations": {
+    "duration": {
+      "fast": 150,
+      "normal": 300,
+      "slow": 500,
+      "slower": 1000
+    },
+    "easing": {
+      "easeIn": "ease-in",
+      "easeOut": "ease-out",
+      "easeInOut": "ease-in-out"
+    },
+    "spring": {
+      "tension": 50,
+      "friction": 7
+    }
+  },
+  
+  "components": {
+    "button": {
+      "height": {
+        "sm": 32,
+        "md": 36,
+        "lg": 44,
+        "xl": 52
+      },
+      "padding": {
+        "horizontal": 24,
+        "vertical": 12
+      },
+      "borderRadius": 20
+    },
+    "card": {
+      "padding": 16,
+      "borderRadius": 20,
+      "borderWidth": 1
+    },
+    "input": {
+      "height": 44,
+      "padding": 12,
+      "borderRadius": 10,
+      "borderWidth": 1
+    },
+    "tabBar": {
+      "height": 77,
+      "paddingTop": 12,
+      "borderRadius": {
+        "top": 10
+      }
+    },
+    "tabItem": {
+      "iconSize": 22,
+      "labelSize": 12,
+      "gap": 4
+    }
+  },
+  
+  "breakpoints": {
+    "sm": 375,
+    "md": 414,
+    "lg": 768,
+    "xl": 1024
+  },
+  
+  "zIndex": {
+    "base": 0,
+    "dropdown": 1000,
+    "sticky": 1020,
+    "fixed": 1030,
+    "modalBackdrop": 1040,
+    "modal": 1050,
+    "popover": 1060,
+    "tooltip": 1070
+  }
+}

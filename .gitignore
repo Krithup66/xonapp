@@ -1,22 +1,58 @@
-# OS files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# Editor files
-.vscode/
+# Environment files (IMPORTANT: never commit)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Build outputs
+dist/
+build/
+.expo/
+
+# IDE
 .idea/
+.vscode/
 *.swp
 *.swo
-*~
 
-# Pine Script temporary files
-*.log
+# OS files
+.DS_Store
+Thumbs.db
 
-# Backup files
-*.bak
-*.backup
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage/
+
+# Mobile specific
+*.apk
+*.aab
+*.ipa
+*.app
+
+# iOS
+ios/Pods/
+*.xcworkspace
+*.xcuserstate
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+*.keystore
+!debug.keystore
+
+# Expo
+.expo/
+web-build/

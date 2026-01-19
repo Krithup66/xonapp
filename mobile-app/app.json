@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Xon App",
+    "slug": "xonapp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#141414"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.xonapp.trading"
+    },
+    "android": {
+      "package": "com.xonapp.trading"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "scheme": "xonapp"
+  }
+}

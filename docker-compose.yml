@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: xonapp-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - TRADING_JOURNAL_SERVICE_URL=http://trading-journal-service:3001
+      - USER_SERVICE_URL=http://user-service:3002
+      - AUTH_SERVICE_URL=http://auth-service:3003
+      - ICON_SERVICE_URL=http://icon-service:3004
+      - FINANCE_SERVICE_URL=http://finance-service:3005
+    depends_on:
+      - trading-journal-service
+      - user-service
+      - auth-service
+      - icon-service
+      - finance-service
+    networks:
+      - xonapp-network
+
+  trading-journal-service:
+    build:
+      context: ./services/trading-journal-service
+      dockerfile: Dockerfile
+    container_name: xonapp-trading-journal
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - SUPABASE_URL=${SUPABASE_URL:-https://hsyvscvfnvcllnflcwyo.supabase.co}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    networks:
+      - xonapp-network
+
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: xonapp-user-service
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - SUPABASE_URL=${SUPABASE_URL:-https://hsyvscvfnvcllnflcwyo.supabase.co}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    networks:
+      - xonapp-network
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: xonapp-auth-service
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - SUPABASE_URL=${SUPABASE_URL:-https://hsyvscvfnvcllnflcwyo.supabase.co}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+    networks:
+      - xonapp-network
+
+  icon-service:
+    build:
+      context: ./services/icon-service
+      dockerfile: Dockerfile
+    container_name: xonapp-icon-service
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+      - SUPABASE_URL=${SUPABASE_URL:-https://hsyvscvfnvcllnflcwyo.supabase.co}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:19006}
+    networks:
+      - xonapp-network
+
+  finance-service:
+    build:
+      context: ./services/finance-service
+      dockerfile: Dockerfile
+    container_name: xonapp-finance-service
+    ports:
+      - "3005:3005"
+    environment:
+      - PORT=3005
+      - SUPABASE_URL=${SUPABASE_URL:-https://hsyvscvfnvcllnflcwyo.supabase.co}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    networks:
+      - xonapp-network
+
+networks:
+  xonapp-network:
+    driver: bridge
