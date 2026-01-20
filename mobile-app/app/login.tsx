@@ -3,12 +3,13 @@
  * Implementation ตาม Figma Design: https://www.figma.com/design/NmPv0jxFTjvRr44DEEfRd5/xon.com?node-id=3036-7190
  */
 
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, TextInput, Modal, FlatList, Keyboard, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, TextInput, Modal, FlatList, Keyboard, KeyboardAvoidingView, Platform, ScrollView, PanResponder, Animated } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { SvgUri } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BASE_SCREEN_WIDTH = 375;
@@ -70,31 +71,114 @@ export default function Login() {
   const [countryCode, setCountryCode] = useState('+66');
   const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
   const [showCountryModal, setShowCountryModal] = useState(false);
+  const [showNumericKeypad, setShowNumericKeypad] = useState(false);
+  const keypadSlideAnim = useRef(new Animated.Value(0)).current;
+
+  // PanResponder for swipe right to go back
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: (evt) => {
+          // Only start if touch begins near left edge (within 20px)
+          return evt.nativeEvent.pageX < 20;
+        },
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          // Only respond to horizontal swipes (right direction)
+          return gestureState.dx > 10 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+        },
+        onPanResponderGrant: () => {
+          // Optional: Add visual feedback
+        },
+        onPanResponderMove: () => {
+          // Optional: Add visual feedback during swipe
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          // If swiped right more than 80px, go back
+          if (gestureState.dx > 80) {
+            router.push('/');
+          }
+        },
+        onPanResponderTerminate: () => {
+          // Handle cancellation
+        },
+      }),
+    [router]
+  );
 
   const handleMethodChange = (method: 'phone' | 'email') => {
     setLoginMethod(method);
     // Clear focus when switching methods
     phoneInputRef.current?.blur();
     emailInputRef.current?.blur();
+    setShowNumericKeypad(false);
+  };
+
+  // Handle numeric keypad animation
+  useEffect(() => {
+    if (showNumericKeypad) {
+      // Reset animation value first
+      keypadSlideAnim.setValue(0);
+      // Then animate in
+      Animated.spring(keypadSlideAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 8,
+      }).start();
+    } else {
+      Animated.spring(keypadSlideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 8,
+      }).start();
+    }
+  }, [showNumericKeypad]);
+
+  const handleNumberPress = (number: string) => {
+    setPhoneValue((prev) => prev + number);
+    // Keep keypad open and keep focus
+    phoneInputRef.current?.focus();
+  };
+
+  const handleDeletePress = () => {
+    setPhoneValue((prev) => prev.slice(0, -1));
+    // Keep keypad open and keep focus
+    phoneInputRef.current?.focus();
+  };
+
+  const handlePhoneInputFocus = () => {
+    Keyboard.dismiss();
+    // Small delay to ensure keyboard is dismissed first
+    setTimeout(() => {
+      setShowNumericKeypad(true);
+    }, 100);
+  };
+
+
+  const handleKeypadButtonPress = (callback: () => void) => {
+    // Execute callback first
+    callback();
+    // Then immediately refocus to prevent blur from closing keypad
+    setTimeout(() => {
+      phoneInputRef.current?.focus();
+    }, 50);
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={[styles.container, { paddingTop: insets.top }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-    >
+    <View style={[styles.container, { paddingTop: insets.top }]} {...panResponder.panHandlers}>
+      <KeyboardAvoidingView 
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
       <StatusBar style="light" />
       
-      {/* Help Icon - ตาม Figma: right-[27px] top-[58px] */}
+      {/* Help Icon - กลับไปหน้าหลัก */}
       <TouchableOpacity 
         style={styles.helpButton}
         activeOpacity={0.7}
-        onPress={() => {
-          // Navigate to help center (will be created)
-          // router.push('/help-center');
-          console.log('Navigate to help center');
-        }}
+        onPress={() => router.push('/')}
       >
         <Image 
           source={{ uri: ICON_URLS.helpIcon }} 
@@ -162,12 +246,25 @@ export default function Login() {
                 editable={true}
                 autoFocus={false}
                 returnKeyType="done"
-                showSoftInputOnFocus={true}
+                showSoftInputOnFocus={false}
                 blurOnSubmit={false}
                 onSubmitEditing={() => {}}
+                onFocus={handlePhoneInputFocus}
+                onBlur={(e) => {
+                  // Delay blur check to allow keypad button presses
+                  const currentTarget = e.currentTarget;
+                  setTimeout(() => {
+                    // Only blur if input is still not focused
+                    if (!phoneInputRef.current?.isFocused()) {
+                      // Don't auto-hide, let user close manually
+                    }
+                  }, 200);
+                }}
                 onTouchStart={() => {
-                  // Force focus when touched
-                  phoneInputRef.current?.focus();
+                  // Prevent default keyboard
+                  Keyboard.dismiss();
+                  // Show numeric keypad when touched
+                  handlePhoneInputFocus();
                 }}
               />
             </View>
@@ -308,7 +405,242 @@ export default function Login() {
           </View>
         </View>
       </Modal>
-    </KeyboardAvoidingView>
+
+      {/* Numeric Keypad Modal - Slide up from bottom */}
+      <Modal
+        visible={showNumericKeypad}
+        transparent={true}
+        animationType="none"
+        onRequestClose={() => setShowNumericKeypad(false)}
+      >
+        <View style={styles.keypadOverlay}>
+          <TouchableOpacity 
+            style={styles.keypadOverlayTouchable}
+            activeOpacity={1}
+            onPress={() => {
+              setShowNumericKeypad(false);
+              phoneInputRef.current?.blur();
+            }}
+          />
+          <Animated.View
+            style={[
+              {
+                transform: [
+                  {
+                    translateY: keypadSlideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [400, 0],
+                    }),
+                  },
+                ],
+                opacity: keypadSlideAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 1],
+                }),
+              },
+            ]}
+            pointerEvents="box-none"
+          >
+            <LinearGradient
+              colors={['#1a1a1a', '#2a1a1a']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.keypadContainer}
+            >
+              <View style={styles.keypadContent} pointerEvents="auto">
+              {/* Row 1: 1, 2, 3 */}
+              <View style={styles.keypadRow}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    handleNumberPress('1');
+                  }}
+                  style={styles.keypadButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>1</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => handleKeypadButtonPress(() => handleNumberPress('2'))}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>2</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => handleKeypadButtonPress(() => handleNumberPress('3'))}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>3</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+
+              {/* Row 2: 4, 5, 6 */}
+              <View style={styles.keypadRow}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => handleNumberPress('4')}
+                  style={styles.keypadButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>4</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => handleNumberPress('5')}
+                  style={styles.keypadButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>5</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => handleNumberPress('6')}
+                  style={styles.keypadButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>6</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+
+              {/* Row 3: 7, 8, 9 */}
+              <View style={styles.keypadRow}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => handleNumberPress('7')}
+                  style={styles.keypadButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>7</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => handleNumberPress('8')}
+                  style={styles.keypadButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>8</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => handleNumberPress('9')}
+                  style={styles.keypadButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>9</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+
+              {/* Row 4: Delete, 0, Close */}
+              <View style={styles.keypadRow}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => handleDeletePress()}
+                  style={styles.keypadButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>⌫</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => handleNumberPress('0')}
+                  style={styles.keypadButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>0</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    setShowNumericKeypad(false);
+                    phoneInputRef.current?.blur();
+                  }}
+                  style={styles.keypadButtonWrapper}
+                >
+                  <LinearGradient
+                    colors={['#FF6B6B', '#FF8E53']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.keypadButton}
+                  >
+                    <Text style={styles.keypadButtonText}>✓</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </View>
+            </LinearGradient>
+          </Animated.View>
+        </View>
+      </Modal>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -317,6 +649,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
     justifyContent: 'flex-start',
+  },
+  keyboardView: {
+    flex: 1,
   },
 
   helpButton: {
@@ -641,5 +976,68 @@ const styles = StyleSheet.create({
     fontSize: scale(14),
     color: 'rgba(255,255,255,0.6)',
     marginLeft: scale(8),
+  },
+
+  // Numeric Keypad Styles
+  keypadOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+
+  keypadOverlayTouchable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+
+  keypadContainer: {
+    borderTopLeftRadius: scale(20),
+    borderTopRightRadius: scale(20),
+    paddingBottom: scale(30),
+    paddingTop: scale(20),
+    paddingHorizontal: scale(20),
+    width: '100%',
+    alignSelf: 'flex-end',
+    overflow: 'hidden',
+  },
+
+  keypadContent: {
+    gap: scale(15),
+  },
+
+  keypadRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: scale(15),
+  },
+
+  keypadButtonWrapper: {
+    flex: 1,
+    marginHorizontal: scale(5),
+  },
+
+  keypadButtonWrapper: {
+    flex: 1,
+    marginHorizontal: scale(5),
+  },
+
+  keypadButton: {
+    flex: 1,
+    height: scale(60),
+    borderRadius: scale(12),
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 0,
+  },
+
+  keypadButtonText: {
+    fontFamily: 'Prompt-Bold',
+    fontSize: scale(24),
+    color: '#FFFFFF',
   },
 });

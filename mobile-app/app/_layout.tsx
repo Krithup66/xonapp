@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import LoadingScreen from './loading';
+import { UserProvider } from '../contexts/UserContext';
 
 // Prevent splash screen from auto-hiding until fonts are loaded
 SplashScreen.preventAutoHideAsync();
@@ -45,33 +46,35 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: '#000000' },
-          animation: 'none', // Instant transition - no animation สำหรับทุกหน้า
-        }}
-      >
-        <Stack.Screen 
-          name="loading"
-          options={{
-            animation: 'none',
+      <UserProvider>
+        <Stack
+          screenOptions={{
             headerShown: false,
+            contentStyle: { backgroundColor: '#000000' },
+            animation: 'none', // Instant transition - no animation สำหรับทุกหน้า
           }}
-        />
-        <Stack.Screen name="index" />
-        <Stack.Screen name="finance" />
-        <Stack.Screen name="trade" />
-        <Stack.Screen name="community" />
-        <Stack.Screen name="assistant" />
-        <Stack.Screen
-          name="transaction-summary"
-          options={{
-            animation: 'none', // Instant transition - no animation
-            presentation: 'transparentModal', // Modal presentation for overlay effect
-          }}
-        />
-      </Stack>
+        >
+          <Stack.Screen 
+            name="loading"
+            options={{
+              animation: 'none',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen name="index" />
+          <Stack.Screen name="finance" />
+          <Stack.Screen name="trade" />
+          <Stack.Screen name="community" />
+          <Stack.Screen name="assistant" />
+          <Stack.Screen
+            name="transaction-summary"
+            options={{
+              animation: 'none', // Instant transition - no animation
+              presentation: 'transparentModal', // Modal presentation for overlay effect
+            }}
+          />
+        </Stack>
+      </UserProvider>
     </SafeAreaProvider>
   );
 }
