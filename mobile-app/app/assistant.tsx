@@ -3,20 +3,49 @@
  * AI Assistant Interface แบบ Futuristic
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useNavigation } from 'expo-router';
 import { BottomNavigation } from '../components/shared/BottomNavigation';
-import { AISphere } from '../components/assistant/AISphere';
-import { FloatingCard } from '../components/assistant/FloatingCard';
-import { ChatInput } from '../components/assistant/ChatInput';
-import { ThinkingIndicator } from '../components/assistant/ThinkingIndicator';
-import { Sidebar } from '../components/assistant/Sidebar';
 import { scaleWidth, scaleFont } from '../utils/dimensions';
 import { hapticImpact } from '../utils/haptics';
 import Svg, { Path } from 'react-native-svg';
+
+// Lazy load heavy components - load on demand (React Native compatible)
+let AISphereComponent: React.ComponentType<any> | null = null;
+let FloatingCardComponent: React.ComponentType<any> | null = null;
+let ChatInputComponent: React.ComponentType<any> | null = null;
+let ThinkingIndicatorComponent: React.ComponentType<any> | null = null;
+let SidebarComponent: React.ComponentType<any> | null = null;
+
+const loadComponents = async () => {
+  try {
+    if (!AISphereComponent) {
+      const module = await import('../components/assistant/AISphere');
+      AISphereComponent = module.AISphere;
+    }
+    if (!FloatingCardComponent) {
+      const module = await import('../components/assistant/FloatingCard');
+      FloatingCardComponent = module.FloatingCard;
+    }
+    if (!ChatInputComponent) {
+      const module = await import('../components/assistant/ChatInput');
+      ChatInputComponent = module.ChatInput;
+    }
+    if (!ThinkingIndicatorComponent) {
+      const module = await import('../components/assistant/ThinkingIndicator');
+      ThinkingIndicatorComponent = module.ThinkingIndicator;
+    }
+    if (!SidebarComponent) {
+      const module = await import('../components/assistant/Sidebar');
+      SidebarComponent = module.Sidebar;
+    }
+  } catch (error) {
+    console.error('Error loading assistant components:', error);
+  }
+};
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BASE_SCREEN_WIDTH = 375;
@@ -30,6 +59,19 @@ const MenuIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: str
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M3 12H21M3 6H21M3 18H21"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
+// Back Icon
+const BackIcon = ({ size = 24, color = '#FFFFFF' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M19 12H5M12 19L5 12L12 5"
       stroke={color}
       strokeWidth="2"
       strokeLinecap="round"
@@ -84,9 +126,29 @@ const SIDEBAR_ITEMS = [
 export default function AssistantScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const navigation = useNavigation();
   const [isThinking, setIsThinking] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [messages, setMessages] = useState<Array<{ id: string; text: string; isUser: boolean }>>([]);
+  const [componentsLoaded, setComponentsLoaded] = useState(false);
+
+  // Handle back button press
+  const handleBack = () => {
+    hapticImpact('light');
+    if (navigation.canGoBack()) {
+      router.back();
+    } else {
+      // ถ้าไม่มีหน้าข้างหลัง ให้ไปที่หน้า index
+      router.replace('/');
+    }
+  };
+
+  // Lazy load components on mount
+  useEffect(() => {
+    loadComponents().then(() => {
+      setComponentsLoaded(true);
+    });
+  }, []);
 
   const handleSendMessage = (message: string) => {
     // Add user message
@@ -140,6 +202,19 @@ export default function AssistantScreen() {
 
       {/* Header */}
       <View style={styles.header}>
+        {/* Back Button - ซ้ายสุด */}
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={handleBack}
+          activeOpacity={0.7}
+        >
+          <BackIcon size={scale(24)} color="#FFFFFF" />
+        </TouchableOpacity>
+        
+        {/* Title - ตรงกลาง */}
+        <Text style={styles.headerTitle}>ผู้ช่วย AI</Text>
+        
+        {/* Menu Button - ขวาสุด */}
         <TouchableOpacity
           style={styles.menuButton}
           onPress={() => {
@@ -148,24 +223,26 @@ export default function AssistantScreen() {
           }}
           activeOpacity={0.7}
         >
-          <MenuIcon size={scale(24)} />
+          <MenuIcon size={scale(24)} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>ผู้ช่วย AI</Text>
-        <View style={styles.headerSpacer} />
       </View>
 
       {/* Main Content */}
       <View style={styles.content}>
         {/* AI Sphere */}
         <View style={styles.sphereContainer}>
-          <AISphere isThinking={isThinking} />
+          {componentsLoaded && AISphereComponent ? (
+            <AISphereComponent isThinking={isThinking} />
+          ) : (
+            <View style={{ width: scale(200), height: scale(200), backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: scale(100) }} />
+          )}
         </View>
 
         {/* Floating Cards Container - Only show when not thinking */}
-        {!isThinking && (
+        {!isThinking && componentsLoaded && FloatingCardComponent && (
           <View style={styles.floatingCardsContainer}>
             {FLOATING_CARDS.map((card) => (
-              <FloatingCard
+              <FloatingCardComponent
                 key={card.id}
                 title={card.title}
                 content={card.content}
@@ -206,7 +283,11 @@ export default function AssistantScreen() {
           {/* Thinking Indicator */}
           {isThinking && (
             <View style={styles.thinkingContainer}>
-              <ThinkingIndicator visible={isThinking} />
+              {componentsLoaded && ThinkingIndicatorComponent ? (
+                <ThinkingIndicatorComponent visible={isThinking} />
+              ) : (
+                <View style={{ width: scale(100), height: scale(20), backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: scale(10) }} />
+              )}
             </View>
           )}
         </ScrollView>
@@ -214,20 +295,26 @@ export default function AssistantScreen() {
 
       {/* Chat Input */}
       <View style={[styles.inputContainer, { paddingBottom: insets.bottom }]}>
-        <ChatInput
-          placeholder="ถามอะไรก็ได้..."
-          onSend={handleSendMessage}
-          onVoicePress={handleVoicePress}
-          disabled={isThinking}
-        />
+        {componentsLoaded && ChatInputComponent ? (
+          <ChatInputComponent
+            placeholder="ถามอะไรก็ได้..."
+            onSend={handleSendMessage}
+            onVoicePress={handleVoicePress}
+            disabled={isThinking}
+          />
+        ) : (
+          <View style={{ height: scale(50), backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: scale(25) }} />
+        )}
       </View>
 
       {/* Sidebar */}
-      <Sidebar
-        items={SIDEBAR_ITEMS}
-        visible={sidebarVisible}
-        onClose={() => setSidebarVisible(false)}
-      />
+      {componentsLoaded && SidebarComponent && (
+        <SidebarComponent
+          items={SIDEBAR_ITEMS}
+          visible={sidebarVisible}
+          onClose={() => setSidebarVisible(false)}
+        />
+      )}
 
       <BottomNavigation />
     </View>
@@ -257,14 +344,26 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: scale(16),
     paddingVertical: scale(12),
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     zIndex: 10,
   },
+  backButton: {
+    padding: scale(4),
+    width: scale(32),
+    height: scale(32),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   menuButton: {
     padding: scale(4),
+    width: scale(32),
+    height: scale(32),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
     flex: 1,
@@ -272,10 +371,6 @@ const styles = StyleSheet.create({
     fontSize: scaleFont(20),
     color: '#FFFFFF',
     textAlign: 'center',
-    marginLeft: scale(-32), // Center with menu button
-  },
-  headerSpacer: {
-    width: scale(32),
   },
   content: {
     flex: 1,

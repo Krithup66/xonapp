@@ -24,6 +24,7 @@ import { TradingCardComponent } from '../components/trading/TradingCard';
 import { TRADE_COLORS, TRADE_SIZES, TRADE_SPACING, TRADE_ICON_URLS } from '../config/trade-design.config';
 import { scaleWidth, scaleFont } from '../utils/dimensions';
 import { FINANCE_ICON_URLS } from '../config/finance-design.config';
+import { TradeSkeleton } from '../components/shared/SkeletonLoader';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BASE_SCREEN_WIDTH = 375;
@@ -269,14 +270,47 @@ export default function TradeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [selectedPair, setSelectedPair] = useState<'XAUUSD' | 'BTCUSD'>('XAUUSD');
-  const [tradingCards, setTradingCards] = useState<TradingCardType[]>(DEMO_TRADING_CARDS);
+  const [tradingCards, setTradingCards] = useState<TradingCardType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Debug: Log card count
-  console.log('Total trading cards:', tradingCards.length);
-  console.log('DEMO_TRADING_CARDS length:', DEMO_TRADING_CARDS.length);
-
-  // จำลองการทำงานจริงของบอทเทรด - อัพเดทข้อมูลแบบ real-time
+  // Load data from TradingService (ตามกฎ: UI เรียกใช้ Service ไม่ใช่ API โดยตรง)
   useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        // ใช้ TradingService แทนการเรียก API โดยตรง
+        const { tradingService } = await import('../services/TradingService');
+        const cardsResponse = await tradingService.getTradingCards(selectedPair);
+        
+        // ใช้ข้อมูลจาก API หรือ fallback เป็น demo data
+        // Filter demo data ตาม selectedPair ถ้า API ไม่มีข้อมูล
+        if (cardsResponse.cards.length > 0) {
+          setTradingCards(cardsResponse.cards);
+        } else {
+          // ใช้ demo data และ filter ตาม selectedPair
+          const filteredDemoCards = DEMO_TRADING_CARDS.filter(card => card.pair === selectedPair);
+          setTradingCards(filteredDemoCards.length > 0 ? filteredDemoCards : DEMO_TRADING_CARDS);
+        }
+        
+        // Load balance data
+        const balanceData = await tradingService.getBalanceData();
+        // Update balance state if needed
+      } catch (error: any) {
+        // Error handling: ใช้ demo data ถ้า API ล้มเหลว
+        console.error('Error loading trading data:', error.message);
+        setTradingCards(DEMO_TRADING_CARDS);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [selectedPair]);
+
+  // จำลองการทำงานจริงของบอทเทรด - อัพเดทข้อมูลแบบ real-time (only when not loading)
+  useEffect(() => {
+    if (isLoading) return;
+    
     const interval = setInterval(() => {
       setTradingCards((prevCards) =>
         prevCards.map((card) => {
@@ -307,29 +341,51 @@ export default function TradeScreen() {
     }, 2000); // อัพเดททุก 2 วินาที
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isLoading]);
 
-  // Handle toggle button press
-  const handleTogglePress = (cardId: string, currentToggleState: 'ON' | 'OFF') => {
-    setTradingCards((prevCards) =>
-      prevCards.map((card) => {
-        if (card.id === cardId) {
-          const newToggleState = currentToggleState === 'ON' ? 'OFF' : 'ON';
-          // อัพเดท status ตาม toggle state (ON = online, OFF = offline)
-          // สำหรับบอทเทรดอัตโนมัติ: Error card ก็สามารถเปิด/ปิดได้
-          // ถ้า status เป็น 'error' และ toggle เป็น 'ON' → เปลี่ยนเป็น 'online'
-          // ถ้า status เป็น 'error' และ toggle เป็น 'OFF' → เปลี่ยนเป็น 'offline'
-          let newStatus: 'online' | 'offline' | 'error';
-          if (newToggleState === 'ON') {
-            newStatus = 'online';
-          } else {
-            newStatus = 'offline';
+  // Show skeleton screen while loading
+  if (isLoading) {
+    return <TradeSkeleton />;
+  }
+
+  // Handle toggle button press - ใช้ TradingService (ตามกฎ: Business logic อยู่ใน Service)
+  const handleTogglePress = async (cardId: string, currentToggleState: 'ON' | 'OFF') => {
+    try {
+      const { tradingService } = await import('../services/TradingService');
+      const newToggleState = currentToggleState === 'ON' ? 'OFF' : 'ON';
+      const newStatus = newToggleState === 'ON' ? 'online' : 'offline';
+      
+      // อัพเดทผ่าน Service
+      await tradingService.updateTradingCard({
+        id: cardId,
+        toggleState: newToggleState,
+        status: newStatus,
+      });
+      
+      // อัพเดท local state
+      setTradingCards((prevCards) =>
+        prevCards.map((card) => {
+          if (card.id === cardId) {
+            return { ...card, toggleState: newToggleState, status: newStatus };
           }
-          return { ...card, toggleState: newToggleState, status: newStatus };
-        }
-        return card;
-      })
-    );
+          return card;
+        })
+      );
+    } catch (error: any) {
+      // Error handling: แสดง error message (ตามกฎ: user-friendly error)
+      console.error('Error updating trading card:', error.message);
+      // Fallback: อัพเดท local state แม้ว่า API จะล้มเหลว
+      setTradingCards((prevCards) =>
+        prevCards.map((card) => {
+          if (card.id === cardId) {
+            const newToggleState = currentToggleState === 'ON' ? 'OFF' : 'ON';
+            const newStatus = newToggleState === 'ON' ? 'online' : 'offline';
+            return { ...card, toggleState: newToggleState, status: newStatus };
+          }
+          return card;
+        })
+      );
+    }
   };
 
   // คำนวณ balance และ profit จากการ์ดที่เปิดอยู่ (status: 'online' และ toggleState: 'ON')
@@ -421,7 +477,14 @@ export default function TradeScreen() {
 
         {/* Right: Icons (Bot Add + Depth) - อยู่แถวเดียวกันกับแท็บ */}
         <View style={styles.iconsContainerTop}>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => {
+              // TODO: Implement bot add functionality
+              console.log('Bot Add pressed');
+            }}
+            activeOpacity={0.7}
+          >
             <LinearGradient
               colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
               style={styles.iconButtonGlass}
@@ -433,7 +496,14 @@ export default function TradeScreen() {
               />
             </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => {
+              // TODO: Implement depth chart functionality
+              console.log('Depth chart pressed');
+            }}
+            activeOpacity={0.7}
+          >
             <LinearGradient
               colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
               style={styles.iconButtonGlass}
@@ -459,6 +529,16 @@ export default function TradeScreen() {
             {/* Filter cards ตาม selectedPair */}
             {(() => {
               const filteredCards = tradingCards.filter(card => card.pair === selectedPair);
+              
+              // ถ้าไม่มี cards ให้แสดงข้อความ
+              if (filteredCards.length === 0) {
+                return (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>ไม่มีข้อมูลการเทรดสำหรับ {selectedPair}</Text>
+                  </View>
+                );
+              }
+              
               return Array.from({ length: Math.ceil(filteredCards.length / 2) }).map((_, rowIndex) => {
                 const startIndex = rowIndex * 2;
                 const rowCards = filteredCards.slice(startIndex, startIndex + 2);
@@ -467,6 +547,8 @@ export default function TradeScreen() {
                     {rowCards.map((card) => (
                       <TradingCardComponent key={card.id} card={card} onTogglePress={handleTogglePress} />
                     ))}
+                    {/* ถ้า row มีแค่ 1 card ให้เพิ่ม empty space */}
+                    {rowCards.length === 1 && <View style={{ flex: 1 }} />}
                   </View>
                 );
               });
@@ -788,5 +870,19 @@ const styles = StyleSheet.create({
   navLabelActive: {
     fontFamily: 'Prompt-Medium',
     color: '#666666', // สีเทาเมื่อ active เหมือนหน้า Finance
+  },
+  
+  // Empty state
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: scale(40),
+  },
+  emptyText: {
+    fontFamily: 'Prompt-Regular',
+    fontSize: scaleFont(14),
+    color: TRADE_COLORS.textGray,
+    textAlign: 'center',
   },
 });

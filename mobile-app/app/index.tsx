@@ -3,12 +3,13 @@
  * Implementation ตาม Figma Design: https://www.figma.com/design/NmPv0jxFTjvRr44DEEfRd5/xon.com?node-id=3015-7051
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { BottomNavigation } from '../components/shared/BottomNavigation';
+import { ModeSwitchButton } from '../components/shared/ModeSwitchButton';
 import { SvgUri } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -39,6 +40,33 @@ const LEADERBOARD_DATA = [
   { rank: 3, name: 'Trading Legend', profit: '฿ +190,000', image: PROFILE_IMAGES.third },
 ];
 
+// Lazy load image component with placeholder
+const LazyImage = ({ uri, style, resizeMode = 'cover' }: { uri: string; style: any; resizeMode?: 'cover' | 'contain' }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    // Preload image
+    Image.prefetch(uri)
+      .then(() => setImageLoaded(true))
+      .catch(() => setImageError(true));
+  }, [uri]);
+
+  if (imageError) {
+    return (
+      <View style={[style, { backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: '#FFFFFF', fontSize: 10 }}>?</Text>
+      </View>
+    );
+  }
+
+  if (!imageLoaded) {
+    return <View style={[style, { backgroundColor: 'rgba(255,255,255,0.1)' }]} />;
+  }
+
+  return <Image source={{ uri }} style={style} resizeMode={resizeMode} />;
+};
+
 export default function Index() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -54,8 +82,8 @@ export default function Index() {
           activeOpacity={0.7}
           onPress={() => router.push('/menu')}
         >
-          <Image 
-            source={{ uri: ICON_URLS.menu }} 
+          <LazyImage 
+            uri={ICON_URLS.menu} 
             style={styles.menuIcon}
             resizeMode="contain"
           />
@@ -80,8 +108,8 @@ export default function Index() {
         {/* First Place */}
         <Text style={[styles.rankNumber, { top: scale(50) }]}>1</Text>
         <View style={[styles.profileImageContainer, { top: scale(44), left: scale(30) }]}>
-          <Image 
-            source={{ uri: PROFILE_IMAGES.first }} 
+          <LazyImage 
+            uri={PROFILE_IMAGES.first} 
             style={styles.profileImage}
             resizeMode="cover"
           />
@@ -92,8 +120,8 @@ export default function Index() {
         {/* Second Place */}
         <Text style={[styles.rankNumber, { top: scale(94) }]}>2</Text>
         <View style={[styles.profileImageContainer, { top: scale(88), left: scale(30) }]}>
-          <Image 
-            source={{ uri: PROFILE_IMAGES.second }} 
+          <LazyImage 
+            uri={PROFILE_IMAGES.second} 
             style={styles.profileImage}
             resizeMode="cover"
           />
@@ -104,8 +132,8 @@ export default function Index() {
         {/* Third Place */}
         <Text style={[styles.rankNumber, { top: scale(138) }]}>3</Text>
         <View style={[styles.profileImageContainer, { top: scale(132), left: scale(30) }]}>
-          <Image 
-            source={{ uri: PROFILE_IMAGES.third }} 
+          <LazyImage 
+            uri={PROFILE_IMAGES.third} 
             style={styles.profileImage}
             resizeMode="cover"
           />
@@ -142,6 +170,9 @@ export default function Index() {
 
       {/* Bottom Navigation */}
       <BottomNavigation />
+
+      {/* Mode Switch Button - Sci-fi Warp Animation */}
+      <ModeSwitchButton position="top-right" size="medium" />
     </View>
   );
 }

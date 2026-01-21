@@ -187,12 +187,15 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ isLightBackg
           {/* xon / Home - Active */}
           <TouchableOpacity style={[styles.navItem, pathname === '/' && styles.tradeActiveItem]} onPress={() => router.push('/')}>
             <HomeNavIcon size={scale(20)} isXonPage={true} />
-            <Text style={[
-              styles.navLabel, 
-              pathname === '/' 
-                ? { fontFamily: 'Prompt-Bold', color: '#710f0f' } 
-                : getTextStyle('/')
-            ]}>
+            <Text 
+              style={[
+                styles.navLabel, 
+                pathname === '/' 
+                  ? { fontFamily: 'Prompt-Bold', color: '#710f0f' } 
+                  : getTextStyle('/')
+              ]}
+              numberOfLines={1}
+            >
               xon
             </Text>
           </TouchableOpacity>
@@ -200,7 +203,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ isLightBackg
           {/* การเงิน / Finance */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/finance')}>
             <FinanceNavIcon size={scale(20)} isXonPage={true} />
-            <Text style={[styles.navLabel, getTextStyle('/finance')]}>การเงิน</Text>
+            <Text style={[styles.navLabel, getTextStyle('/finance')]} numberOfLines={1}>การเงิน</Text>
           </TouchableOpacity>
 
           {/* ชุมชน / Community */}
@@ -211,19 +214,19 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ isLightBackg
               isXonPage={true} 
               isActive={pathname === '/community'}
             />
-            <Text style={[styles.navLabel, getTextStyle('/community')]}>ชุมชน</Text>
+            <Text style={[styles.navLabel, getTextStyle('/community')]} numberOfLines={1}>ชุมชน</Text>
           </TouchableOpacity>
 
           {/* ผู้ช่วย / Assistant */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/assistant')}>
             <AssistantNavIcon size={scale(20)} isXonPage={true} />
-            <Text style={[styles.navLabel, getTextStyle('/assistant')]}>ผู้ช่วย</Text>
+            <Text style={[styles.navLabel, getTextStyle('/assistant')]} numberOfLines={1}>ผู้ช่วย</Text>
           </TouchableOpacity>
 
           {/* Trade */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/trade')}>
             <TradeNavIcon size={scale(20)} isXonPage={true} />
-            <Text style={[styles.navLabel, getTextStyle('/trade')]}>Trade</Text>
+            <Text style={[styles.navLabel, getTextStyle('/trade')]} numberOfLines={1}>Trade</Text>
           </TouchableOpacity>
         </>
       ) : isTradePage ? (
@@ -232,13 +235,13 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ isLightBackg
           {/* xon / Home */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/')}>
             <HomeNavIcon size={scale(20)} isTradePage={true} />
-            <Text style={[styles.navLabel, getTextStyle('/')]}>xon</Text>
+            <Text style={[styles.navLabel, getTextStyle('/')]} numberOfLines={1}>xon</Text>
           </TouchableOpacity>
 
           {/* การเงิน / Finance */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/finance')}>
             <FinanceNavIcon size={scale(20)} isTradePage={true} />
-            <Text style={[styles.navLabel, getTextStyle('/finance')]}>การเงิน</Text>
+            <Text style={[styles.navLabel, getTextStyle('/finance')]} numberOfLines={1}>การเงิน</Text>
           </TouchableOpacity>
 
           {/* ชุมชน / Community */}
@@ -249,24 +252,27 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ isLightBackg
               isTradePage={true} 
               isActive={pathname === '/community'}
             />
-            <Text style={[styles.navLabel, getTextStyle('/community')]}>ชุมชน</Text>
+            <Text style={[styles.navLabel, getTextStyle('/community')]} numberOfLines={1}>ชุมชน</Text>
           </TouchableOpacity>
 
           {/* ผู้ช่วย / Assistant */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/assistant')}>
             <AssistantNavIcon size={scale(20)} isTradePage={true} />
-            <Text style={[styles.navLabel, getTextStyle('/assistant')]}>ผู้ช่วย</Text>
+            <Text style={[styles.navLabel, getTextStyle('/assistant')]} numberOfLines={1}>ผู้ช่วย</Text>
           </TouchableOpacity>
 
           {/* Trade - Active */}
           <TouchableOpacity style={[styles.navItem, pathname === '/trade' && styles.tradeActiveItem]} onPress={() => router.push('/trade')}>
             <TradeNavIcon size={scale(20)} isTradePage={true} />
-            <Text style={[
-              styles.navLabel, 
-              pathname === '/trade' 
-                ? { fontFamily: 'Prompt-Medium', color: '#710f0f' } 
-                : getTextStyle('/trade')
-            ]}>
+            <Text 
+              style={[
+                styles.navLabel, 
+                pathname === '/trade' 
+                  ? { fontFamily: 'Prompt-Medium', color: '#710f0f' } 
+                  : getTextStyle('/trade')
+              ]}
+              numberOfLines={1}
+            >
               Trade
             </Text>
           </TouchableOpacity>
@@ -277,13 +283,13 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ isLightBackg
           {/* xon / Home */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/')}>
             <HomeNavIcon size={scale(20)} isCommunityPage={true} />
-            <Text style={[styles.navLabel, getTextStyle('/')]}>xon</Text>
+            <Text style={[styles.navLabel, getTextStyle('/')]} numberOfLines={1}>xon</Text>
           </TouchableOpacity>
 
           {/* การเงิน / Finance */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/finance')}>
             <FinanceNavIcon size={scale(20)} isCommunityPage={true} />
-            <Text style={[styles.navLabel, getTextStyle('/finance')]}>การเงิน</Text>
+            <Text style={[styles.navLabel, getTextStyle('/finance')]} numberOfLines={1}>การเงิน</Text>
           </TouchableOpacity>
 
           {/* ชุมชน / Community - Active */}
@@ -297,12 +303,15 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ isLightBackg
               isCommunityPage={true} 
               isActive={pathname === '/community'}
             />
-            <Text style={[
-              styles.navLabel, 
-              pathname === '/community' 
-                ? { fontFamily: 'Prompt-Medium', color: '#FF6B9D' } 
-                : getTextStyle('/community')
-            ]}>
+            <Text 
+              style={[
+                styles.navLabel, 
+                pathname === '/community' 
+                  ? { fontFamily: 'Prompt-Medium', color: '#FF6B9D' } 
+                  : getTextStyle('/community')
+              ]}
+              numberOfLines={1}
+            >
               ชุมชน
             </Text>
           </TouchableOpacity>
@@ -310,13 +319,13 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ isLightBackg
           {/* ผู้ช่วย / Assistant */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/assistant')}>
             <AssistantNavIcon size={scale(20)} isCommunityPage={true} />
-            <Text style={[styles.navLabel, getTextStyle('/assistant')]}>ผู้ช่วย</Text>
+            <Text style={[styles.navLabel, getTextStyle('/assistant')]} numberOfLines={1}>ผู้ช่วย</Text>
           </TouchableOpacity>
 
           {/* Trade */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/trade')}>
             <TradeNavIcon size={scale(20)} isCommunityPage={true} />
-            <Text style={[styles.navLabel, getTextStyle('/trade')]}>Trade</Text>
+            <Text style={[styles.navLabel, getTextStyle('/trade')]} numberOfLines={1}>Trade</Text>
           </TouchableOpacity>
         </>
       ) : (
@@ -325,13 +334,13 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ isLightBackg
           {/* xon / Home - หน้าแรก */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/')}>
             <HomeNavIcon size={scale(20)} isTradePage={false} isXonPage={false} />
-            <Text style={[styles.navLabel, getTextStyle('/')]}>xon</Text>
+            <Text style={[styles.navLabel, getTextStyle('/')]} numberOfLines={1}>xon</Text>
           </TouchableOpacity>
 
           {/* การเงิน / Finance */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/finance')}>
             <FinanceNavIcon size={scale(20)} isTradePage={false} isXonPage={false} />
-            <Text style={[styles.navLabel, getTextStyle('/finance')]}>การเงิน</Text>
+            <Text style={[styles.navLabel, getTextStyle('/finance')]} numberOfLines={1}>การเงิน</Text>
           </TouchableOpacity>
 
           {/* ชุมชน / Community */}
@@ -343,19 +352,19 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ isLightBackg
               isXonPage={false}
               isActive={pathname === '/community'}
             />
-            <Text style={[styles.navLabel, getTextStyle('/community')]}>ชุมชน</Text>
+            <Text style={[styles.navLabel, getTextStyle('/community')]} numberOfLines={1}>ชุมชน</Text>
           </TouchableOpacity>
 
           {/* ผู้ช่วย / Assistant */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/assistant')}>
             <AssistantNavIcon size={scale(20)} isTradePage={false} isXonPage={false} />
-            <Text style={[styles.navLabel, getTextStyle('/assistant')]}>ผู้ช่วย</Text>
+            <Text style={[styles.navLabel, getTextStyle('/assistant')]} numberOfLines={1}>ผู้ช่วย</Text>
           </TouchableOpacity>
 
           {/* Trade */}
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/trade')}>
             <TradeNavIcon size={scale(20)} isTradePage={false} isXonPage={false} />
-            <Text style={[styles.navLabel, getTextStyle('/trade')]}>Trade</Text>
+            <Text style={[styles.navLabel, getTextStyle('/trade')]} numberOfLines={1}>Trade</Text>
           </TouchableOpacity>
         </>
       )}
@@ -387,7 +396,6 @@ const styles = StyleSheet.create({
   navLabel: {
     fontSize: scale(12),
     textAlign: 'center',
-    numberOfLines: 1,
   },
 
   tradeActiveItem: {

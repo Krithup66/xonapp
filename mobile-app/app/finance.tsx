@@ -12,7 +12,7 @@
  * - Positive Change Color: #C4FF00
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,7 @@ import { BottomNavigation } from '../components/shared/BottomNavigation';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle, G, Rect, Defs, Stop, LinearGradient as SvgLinearGradient } from 'react-native-svg';
 import { SvgUri } from 'react-native-svg';
+import { FinanceSkeleton } from '../components/shared/SkeletonLoader';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -329,13 +330,63 @@ const CryptoIcon = ({ type, size = 40 }: { type: CryptoAsset['icon']; size?: num
 export default function FinanceScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [assets] = useState(DEMO_ASSETS);
+  const [assets, setAssets] = useState<CryptoAsset[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Real-time balance animation state
   const [balance, setBalance] = useState(123456.78);
   
-  // Update balance with animated numbers
-  React.useEffect(() => {
+  // Load data from FinanceService (ตามกฎ: UI เรียกใช้ Service ไม่ใช่ API โดยตรง)
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        // ใช้ FinanceService แทนการเรียก API โดยตรง
+        const { financeService } = await import('../services/FinanceService');
+        const assetsResponse = await financeService.getAssets();
+        
+        // Transform backend assets to CryptoAsset format
+        const transformedAssets: CryptoAsset[] = assetsResponse.assets.map((asset: any) => ({
+          id: asset.id || '',
+          symbol: asset.symbol || '',
+          name: asset.name || '',
+          cost: asset.currentPrice || 0,
+          value: asset.totalValue || 0,
+          change: asset.dailyChange || 0,
+          quantity: asset.quantity?.toString() || '0',
+          icon: mapSymbolToIcon(asset.symbol || ''),
+        }));
+        
+        setAssets(transformedAssets.length > 0 ? transformedAssets : DEMO_ASSETS);
+        
+        // Load balance
+        const balanceResponse = await financeService.getBalance();
+        setBalance(balanceResponse.totalBalance || 123456.78);
+      } catch (error: any) {
+        // Error handling: ใช้ demo data ถ้า API ล้มเหลว
+        console.error('Error loading finance data:', error.message);
+        setAssets(DEMO_ASSETS);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
+
+  // Helper: Map symbol to icon type
+  const mapSymbolToIcon = (symbol: string): 'btc' | 'sol' | 'eth' => {
+    const upperSymbol = symbol.toUpperCase();
+    if (upperSymbol.includes('BTC') || upperSymbol.includes('BITCOIN')) return 'btc';
+    if (upperSymbol.includes('SOL') || upperSymbol.includes('SOLANA')) return 'sol';
+    if (upperSymbol.includes('ETH') || upperSymbol.includes('ETHEREUM')) return 'eth';
+    return 'btc';
+  };
+  
+  // Update balance with animated numbers (only when not loading)
+  useEffect(() => {
+    if (isLoading) return;
+    
     const interval = setInterval(() => {
       // Generate random balance between 100,000 and 999,999.99
       const minBalance = 100000;
@@ -345,7 +396,7 @@ export default function FinanceScreen() {
     }, 2000); // Update every 2 seconds
     
     return () => clearInterval(interval);
-  }, []);
+  }, [isLoading]);
   
   // Format balance to USD format
   const formatBalance = (amount: number): string => {
@@ -357,6 +408,11 @@ export default function FinanceScreen() {
   const BOTTOM_NAV_LEFT = (SCREEN_WIDTH - BOTTOM_NAV_WIDTH) / 2; // Center the nav bar
   const SERVICE_ITEM_WIDTH = SCREEN_WIDTH * 0.16; // ~60px on 375px screen, scales proportionally
   const SERVICE_GAP = SCREEN_WIDTH * 0.0213; // ~8px on 375px screen
+
+  // Show skeleton screen while loading
+  if (isLoading) {
+    return <FinanceSkeleton />;
+  }
 
   return (
     <View style={styles.container}>

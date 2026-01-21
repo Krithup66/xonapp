@@ -10,6 +10,7 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import LoadingScreen from './loading';
 import { UserProvider } from '../contexts/UserContext';
+import { ModeSwitchProvider } from '../contexts/ModeSwitchContext';
 
 // Prevent splash screen from auto-hiding until fonts are loaded
 SplashScreen.preventAutoHideAsync();
@@ -47,7 +48,8 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <UserProvider>
-        <Stack
+        <ModeSwitchProvider>
+          <Stack
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: '#000000' },
@@ -74,6 +76,7 @@ export default function RootLayout() {
             }}
           />
         </Stack>
+        </ModeSwitchProvider>
       </UserProvider>
     </SafeAreaProvider>
   );

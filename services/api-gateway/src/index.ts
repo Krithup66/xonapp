@@ -75,12 +75,14 @@ app.get('/health', (req, res) => {
 });
 
 // Service routes
+// Note: Health service is disabled until UI is ready
 const services = {
   '/api/trading-journal': process.env.TRADING_JOURNAL_SERVICE_URL || 'http://localhost:3001',
   '/api/user': process.env.USER_SERVICE_URL || 'http://localhost:3002',
   '/api/auth': process.env.AUTH_SERVICE_URL || 'http://localhost:3003',
   '/api/icons': process.env.ICON_SERVICE_URL || 'http://localhost:3004',
   '/api/finance': process.env.FINANCE_SERVICE_URL || 'http://localhost:3005',
+  // '/api/health': process.env.HEALTH_SERVICE_URL || 'http://localhost:3006', // Disabled - waiting for UI development
 };
 
 // Proxy middleware for each service

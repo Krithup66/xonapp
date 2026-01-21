@@ -15,12 +15,14 @@ services:
       - AUTH_SERVICE_URL=http://auth-service:3003
       - ICON_SERVICE_URL=http://icon-service:3004
       - FINANCE_SERVICE_URL=http://finance-service:3005
+      - HEALTH_SERVICE_URL=http://health-service:3006
     depends_on:
       - trading-journal-service
       - user-service
       - auth-service
       - icon-service
       - finance-service
+      - health-service
     networks:
       - xonapp-network
 
@@ -95,6 +97,23 @@ services:
       - SUPABASE_URL=${SUPABASE_URL:-https://hsyvscvfnvcllnflcwyo.supabase.co}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    networks:
+      - xonapp-network
+
+  health-service:
+    build:
+      context: ./services/health-service
+      dockerfile: Dockerfile
+    container_name: xonapp-health-service
+    ports:
+      - "3006:3006"
+    environment:
+      - PORT=3006
+      - SUPABASE_URL=${SUPABASE_URL:-https://hsyvscvfnvcllnflcwyo.supabase.co}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - WHOOP_CLIENT_ID=${WHOOP_CLIENT_ID}
+      - WHOOP_CLIENT_SECRET=${WHOOP_CLIENT_SECRET}
+      - WHOOP_REDIRECT_URI=${WHOOP_REDIRECT_URI:-http://localhost:3000/api/health/oauth/callback}
     networks:
       - xonapp-network
 

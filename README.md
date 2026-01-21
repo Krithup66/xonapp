@@ -22,11 +22,14 @@ xonapp/
 │   ├── user-service/    # จัดการผู้ใช้ (Port 3002)
 │   ├── trading-journal-service/  # บันทึกการเทรด (Port 3001)
 │   ├── icon-service/    # จัดการไอคอน (Port 3004)
-│   └── finance-service/ # จัดการการเงิน (Port 3005)
+│   ├── finance-service/ # จัดการการเงิน (Port 3005)
+│   └── health-service/  # เชื่อมต่อ WHOOP API (Port 3006)
 │
 ├── supabase/            # Database schema
 │   ├── schema.sql       # ตาราง trading_records, users
-│   └── icons-schema.sql # ตาราง icons
+│   ├── icons-schema.sql # ตาราง icons
+│   ├── finance-schema.sql # ตาราง finance
+│   └── health-schema.sql # ตาราง WHOOP tokens
 │
 ├── scripts/
 │   └── security-check.sh
@@ -74,6 +77,8 @@ cd services/auth-service && npm install
 cd services/user-service && npm install
 cd services/trading-journal-service && npm install
 cd services/icon-service && npm install
+cd services/finance-service && npm install
+cd services/health-service && npm install
 
 # รัน (แต่ละ terminal)
 cd services/api-gateway && npm run dev
@@ -98,6 +103,11 @@ JWT_SECRET=your-jwt-secret-key
 
 # CORS
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:19006
+
+# WHOOP API (สำหรับ health-service)
+WHOOP_CLIENT_ID=your-whoop-client-id
+WHOOP_CLIENT_SECRET=your-whoop-client-secret
+WHOOP_REDIRECT_URI=http://localhost:3000/api/health/oauth/callback
 ```
 
 **สำคัญ:** ห้าม commit ไฟล์ `.env` ขึ้น git
@@ -112,6 +122,7 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:19006
 4. รัน SQL จากไฟล์:
    - `supabase/schema.sql` (trading records, users)
    - `supabase/finance-schema.sql` (balances, assets, transactions)
+   - `supabase/health-schema.sql` (WHOOP tokens)
 
 ### ตาราง Database
 
@@ -186,6 +197,28 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:19006
 | GET | /users/:id | ดูโปรไฟล์ |
 | PUT | /users/:id | แก้ไขโปรไฟล์ |
 
+### Health: `/api/health` (WHOOP Integration)
+
+| Method | Endpoint | คำอธิบาย |
+|--------|----------|----------|
+| GET | /oauth/authorize | รับ OAuth authorization URL |
+| GET | /oauth/callback | OAuth callback (WHOOP redirect) |
+| GET | /oauth/status | ตรวจสอบสถานะการเชื่อมต่อ |
+| DELETE | /oauth/disconnect | ตัดการเชื่อมต่อ WHOOP |
+| GET | /profile | ดูโปรไฟล์ WHOOP |
+| GET | /body-measurements | ดูข้อมูลร่างกาย |
+| GET | /recovery | ดูข้อมูล Recovery |
+| GET | /recovery/cycle/:cycleId | ดู Recovery ของ cycle |
+| GET | /sleep | ดูข้อมูลการนอน |
+| GET | /sleep/:sleepId | ดูการนอนตาม ID |
+| GET | /cycles | ดูข้อมูล Cycles |
+| GET | /cycles/:cycleId | ดู Cycle ตาม ID |
+| GET | /workouts | ดูข้อมูล Workouts |
+| GET | /workouts/:workoutId | ดู Workout ตาม ID |
+| GET | /summary | สรุปข้อมูลสุขภาพล่าสุด |
+
+**หมายเหตุ:** ต้องเชื่อมต่อ WHOOP account ก่อนใช้งาน (ผ่าน `/oauth/authorize`)
+
 ---
 
 ## สถาปัตยกรรม Microservices
@@ -204,12 +237,12 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:19006
          │
     ┌────┴────┬──────────┬────────────┐
     │         │          │            │
-    ▼         ▼          ▼            ▼          ▼
-┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-│ Auth   │ │ User   │ │Trading │ │ Icon   │ │Finance │
-│Service │ │Service │ │Journal │ │Service │ │Service │
-│:3003   │ │:3002   │ │:3001   │ │:3004   │ │:3005   │
-└────────┘ └────────┘ └────────┘ └────────┘ └────────┘
+    ▼         ▼          ▼            ▼          ▼          ▼
+┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
+│ Auth   │ │ User   │ │Trading │ │ Icon   │ │Finance │ │ Health │
+│Service │ │Service │ │Journal │ │Service │ │Service │ │Service │
+│:3003   │ │:3002   │ │:3001   │ │:3004   │ │:3005   │ │:3006   │
+└────────┘ └────────┘ └────────┘ └────────┘ └────────┘ └────────┘
     │         │          │            │
     └─────────┴──────────┴────────────┘
                     │
@@ -265,6 +298,9 @@ curl http://localhost:3000/health
 curl http://localhost:3001/health
 curl http://localhost:3002/health
 curl http://localhost:3003/health
+curl http://localhost:3004/health
+curl http://localhost:3005/health
+curl http://localhost:3006/health
 
 # ดู logs
 docker-compose logs -f

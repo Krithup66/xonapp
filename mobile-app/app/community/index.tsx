@@ -3,7 +3,7 @@
  * Threads-style UI - Timeline feed design
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +13,7 @@ import { ThreadPost } from '../../components/community/ThreadPost';
 import { CreatePostModal } from '../../components/community/CreatePostModal';
 import { scaleWidth, scaleFont } from '../../utils/dimensions';
 import { hapticImpact } from '../../utils/haptics';
+import { CommunitySkeleton } from '../../components/shared/SkeletonLoader';
 import Svg, { Path } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -123,19 +124,125 @@ const THREADS = [
   },
 ];
 
+interface Thread {
+  id: string;
+  author: {
+    name: string;
+    username: string;
+    avatar?: string;
+  };
+  content: string;
+  timestamp: string;
+  likes: number;
+  replies: number;
+  reposts: number;
+  isLiked: boolean;
+}
+
 export default function CommunityScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [createPostVisible, setCreatePostVisible] = useState(false);
   const [activeFeed, setActiveFeed] = useState<'forYou' | 'following'>('forYou');
+  const [threads, setThreads] = useState<Thread[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleCreatePost = (data: { text: string; media?: string[]; isStory: boolean }) => {
-    console.log('Create post:', data);
+  // Load data from CommunityService (ตามกฎ: UI เรียกใช้ Service ไม่ใช่ API โดยตรง)
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        // ใช้ CommunityService แทนการเรียก API โดยตรง
+        const { communityService } = await import('../../services/CommunityService');
+        const postsResponse = await communityService.getPosts(activeFeed);
+        
+        // Transform posts to threads format (temporary until backend is ready)
+        const transformedThreads: Thread[] = postsResponse.posts.map((post) => ({
+          id: post.id,
+          author: {
+            name: post.user.name || 'Unknown',
+            username: post.user.username || 'unknown',
+            avatar: post.user.avatar,
+          },
+          content: post.text,
+          timestamp: formatTimestamp(post.createdAt),
+          likes: post.likes,
+          replies: post.comments,
+          reposts: post.shares,
+          isLiked: post.isLiked,
+        }));
+        
+        // ใช้ข้อมูลจาก API หรือ fallback เป็น demo data
+        setThreads(transformedThreads.length > 0 ? transformedThreads : THREADS);
+      } catch (error: any) {
+        // Error handling: ใช้ demo data ถ้า API ล้มเหลว
+        console.error('Error loading community data:', error.message);
+        setThreads(THREADS);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [activeFeed]);
+
+  // Helper: Format timestamp
+  const formatTimestamp = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+    
+    if (diffHours < 1) return 'ไม่กี่นาทีที่แล้ว';
+    if (diffHours < 24) return `${diffHours} ชม.`;
+    if (diffDays === 1) return '1 วันที่แล้ว';
+    return `${diffDays} วันที่แล้ว`;
+  };
+
+  // Handle create post - ใช้ CommunityService (ตามกฎ: Business logic อยู่ใน Service)
+  const handleCreatePost = async (data: { text: string; media?: string[]; isStory: boolean }) => {
+    try {
+      const { communityService } = await import('../../services/CommunityService');
+      await communityService.createPost({
+        text: data.text,
+        media: data.media?.map(url => ({ type: 'image' as const, url })),
+        isStory: data.isStory,
+      });
+      
+      // Reload posts after creating
+      const postsResponse = await communityService.getPosts(activeFeed);
+      const transformedThreads: Thread[] = postsResponse.posts.map((post) => ({
+        id: post.id,
+        author: {
+          name: post.user.name || 'Unknown',
+          username: post.user.username || 'unknown',
+          avatar: post.user.avatar,
+        },
+        content: post.text,
+        timestamp: formatTimestamp(post.createdAt),
+        likes: post.likes,
+        replies: post.comments,
+        reposts: post.shares,
+        isLiked: post.isLiked,
+      }));
+      setThreads(transformedThreads);
+      setCreatePostVisible(false);
+    } catch (error: any) {
+      // Error handling: แสดง error message (ตามกฎ: user-friendly error)
+      console.error('Error creating post:', error.message);
+      // TODO: แสดง error dialog แก่ user
+    }
   };
 
   const handlePostPress = (id: string) => {
     router.push(`/community/${id}`);
   };
+
+  // Show skeleton screen while loading
+  if (isLoading) {
+    return <CommunitySkeleton />;
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -178,7 +285,7 @@ export default function CommunityScreen() {
         contentContainerStyle={styles.feedContent}
         showsVerticalScrollIndicator={false}
       >
-        {THREADS.map((thread) => (
+        {threads.map((thread) => (
           <ThreadPost
             key={thread.id}
             id={thread.id}
