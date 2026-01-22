@@ -1,2 +1,55 @@
-กำหนดกฎเหล็กให้ AI เช่น "ทุกครั้งที่สร้าง Module ใหม่ ต้องมีไฟล์ Interface แยกต่างหาก" หรือ "ห้ามเขียน Logic เชื่อมต่อฐานข้อมูลในหน้า UI โดยตรง"
-โปรเจ็ก ทำเป็นรูปแบบไมโคเซอวิส 
+# =================================================================
+# Xon Project: The Oasis for Investors (Advanced System Architecture)
+# =================================================================
+
+# 1. ARCHITECTURE & FOLDER STRUCTURE (The Service Layer Pattern)
+# -----------------------------------------------------------------
+- Patterns: Strictly enforce 'Clean Architecture' and 'Domain-Driven Design (DDD)'.
+- Folder Structure Enforcement:
+    - /services: Contains I[Name]Service.ts (Interfaces) and [Name]Service.ts (Implementations).
+    - /app: Pure UI logic. No direct API calls or business logic calculations.
+    - /lib: Core utilities like api.ts, secure_storage.ts, and global constants.
+- Rules: 
+    - Every new module MUST start with an Interface definition.
+    - Business logic must reside in Service classes. UI components only call service methods.
+
+# 2. PERFORMANCE & ASSET MANAGEMENT (Extreme Optimization)
+# -----------------------------------------------------------------
+- Caching Strategy: Implement 'SWR' (Stale-While-Revalidate) or 'React Query' patterns in Services to cache data and reduce redundant API calls.
+- Resource Loading:
+    - Lazy Load: Use Dynamic Imports for heavy modules: Game Mode, ERP, Travel, and IB Dashboard.
+    - Rive Management: Use Singleton for Rive Controllers. Ensure `.dispose()` is called to prevent memory leaks in the Game Mode.
+- Image Handling: Use WebP for all images. Assets > 1MB must be fetched from CDN via URL.
+
+# 3. ADVANCED SECURITY & FINANCIAL INTEGRITY
+# -----------------------------------------------------------------
+- Zero-Trust Communication: Always assume client-side data is compromised. Re-verify balances and roles (IB) on every sensitive Service call.
+- Wallet Security (CoolWallet):
+    - PRIVATE KEYS/MNEMONICS MUST NEVER LEAVE THE HARDWARE WALLET.
+    - No storing of keys in Logs, Cache, or LocalStorage.
+    - All wallet interactions must use an isolated 'WalletConnectorService'.
+- Sensitive Data Policy: 
+    - Strictly forbid `console.log()` of Wallet addresses, Health (Whoop) metrics, or IB Revenue.
+    - Session tokens must reside in 'Secure Storage' (Keychain/Keystore).
+- Biometric Gates: Force biometric re-auth for any Service method tagged with '@secure' (e.g., withdraw, view_private_keys, ib_revenue).
+
+# 4. SERVICE LAYER RULES (Strict Enforcement)
+# -----------------------------------------------------------------
+- Method Naming: Use clear action-based names: `getBalance()`, `syncWhoopData()`, `validateIBStatus()`.
+- Error Handling: Use a unified 'ErrorHandler' utility. All service methods must return a Result object { data, error }.
+- Demo Mode: Every service must have a 'Mock' mode for testing UI without a backend.
+
+# 5. IB & SOCIAL HUB (Multi-Instance Logic)
+# -----------------------------------------------------------------
+- Instance Isolation: IB Private Server logic must be decoupled from the main app's financial core.
+- Communication: Voice/Chat data must be handled through a dedicated 'RealTimeService' using WebSockets or gRPC, separate from REST API calls.
+
+# 6. CODING STANDARDS & AUTOMATION
+# -----------------------------------------------------------------
+- Strict Typing: No 'any' type allowed. Use precise interfaces.
+- Documentation: Every Service method must have a JSDoc comment explaining its purpose and security level.
+
+## 7. HARDWARE PAYMENT & NFC SECURITY
+- **Encrypted Bridge:** All communication between the Smart-Band and the App must be encrypted using AES-256.
+- **Transaction Confirmation:** Every payment initiated from the band must trigger a mandatory confirmation in the 'IHardwareService' with a visual summary on the UI.
+- **Pulse-ID Auth:** Before executing a payment, the service must verify the 'Heartbeat State' to ensure the authorized user is wearing the device.
